@@ -1,0 +1,89 @@
+zookeeper需安装jdk
+yum install java-1.8.0-openjdk* -y
+java -version
+进入zookeeper官网选择下载链接如下：http://mirror.bit.edu.cn/apache/zookeeper/zookeeper-3.5.5/
+选择最新稳定版本3.5.5，选择下载apache-zookeeper-3.5.5-bin.tar.gz
+vim /etc/hosts(建议基数台)
+172.16.35.81 test1
+172.16.35.36 test2
+172.16.35.37 test3
+tar zxvf apache-zookeeper-3.5.5-bin.tar.gz
+mv apache-zookeeper-3.5.5-bin.tar.gz /usr/local/src/
+cd /usr/local/src/apache-zookeeper-3.5.5-bin/
+mkdir data
+mkdir logs
+cd conf/
+cp zoo_sample.cfg zoo.cfg
+
+vim zoo.cfg
+# The number of milliseconds of each tick
+tickTime=2000
+# The number of ticks that the initial 
+# synchronization phase can take
+initLimit=10
+# The number of ticks that can pass between 
+# sending a request and getting an acknowledgement
+syncLimit=5
+# the directory where the snapshot is stored.
+# do not use /tmp for storage, /tmp here is just 
+# example sakes.
+#dataDir=/tmp/zookeeper
+dataDir=/usr/local/src/apache-zookeeper-3.5.5-bin/data/
+dataLogDir=/usr/local/src/apache-zookeeper-3.5.5-bin/logs/
+# the port at which the clients will connect
+clientPort=2181
+# the maximum number of client connections.
+# increase this if you need to handle more clients
+#maxClientCnxns=60
+#
+# Be sure to read the maintenance section of the 
+# administrator guide before turning on autopurge.
+#
+# http://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance
+#
+# The number of snapshots to retain in dataDir
+#autopurge.snapRetainCount=3
+# Purge task interval in hours
+# Set to "0" to disable auto purge feature
+#autopurge.purgeInterval=1
+server.1=test1:2888:3888
+server.2=test2:2888:3888
+server.3=test3:2888:3888
+
+cd ../data/
+vim myid（这里输入的1 是zoo.cfg文件中server.1的1）
+1
+
+vim /etc/profile
+export ZOOKEEPER_HOME=/usr/local/src/apache-zookeeper-3.5.5-bin/
+export PATH=$ZOOkEEPER_HOME/bin:$PATH
+
+source /etc/profile
+cd /usr/local/src/apache-zookeeper-3.5.5-bin/bin/
+./zkServer.sh start
+./zkServer.sh stop
+ps -aux |grep zookeeper
+
+
+安装Zookeeper可视化工具zkui
+安装mvn命令
+wget http://mirror.bit.edu.cn/apache/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz
+tar -zxvf apache-maven-3.3.9-bin.tar.gz -C /var/local
+vi /etc/profile
+export MAVEN_HOME=/var/local/apache-maven-3.3.9
+export MAVEN_HOME
+export PATH=$PATH:$MAVEN_HOME/bin
+
+source /etc/profile
+mvn -version
+git clone https://github.com/DeemOpen/zkui.git
+cd zkui
+mvn clean package -DskipTests=true
+cp config.cfg ./target/config.cfg
+cd zkui/target/
+配置文件中的zookeeper地址默认是localhost:2181，若需要监听其他机器上的zk，修改config.cfg配置文件中的zkServer配置
+vim config.cfg
+#Comma seperated list of all the zookeeper servers
+zkServer=localhost:2181,172.16.35.37:2181,172.16.35.81:2181
+zkSessionTimeout=20
+访问http://localhost:9090
